@@ -1,0 +1,11 @@
+{
+  "type": "fund-watcher",
+  "implementation": "agents.implementations.fund_watcher",
+  "class": "FundWatcherAgent",
+  "schedule": "daily_430pm_et",
+  "tools": ["get_401k_nav", "send_sms_alert", "push_to_dashboard"],
+  "events": ["nav_ready"],
+  "red_lines": ["fund_drop_5pct"],
+  "max_runtime_seconds": 60,
+  "description": "Pulls NAV for RFNGX, RICAX, RGAGX — alerts on >5% single-day drops"
+}

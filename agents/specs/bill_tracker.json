@@ -1,0 +1,11 @@
+{
+  "type": "bill-tracker",
+  "implementation": "agents.implementations.bill_tracker",
+  "class": "BillTrackerAgent",
+  "schedule": "daily_8am_ct",
+  "tools": ["get_all_bills", "get_bill_status", "send_sms_alert", "send_n8n_webhook"],
+  "events": ["payment_confirmed", "bill_updated"],
+  "red_lines": ["bill_overdue_1day"],
+  "max_runtime_seconds": 60,
+  "description": "Sweeps all 31 bills, flags overdue, escalates via SMS and N8N"
+}

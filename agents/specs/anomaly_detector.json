@@ -1,0 +1,11 @@
+{
+  "type": "anomaly-detector",
+  "implementation": "agents.implementations.anomaly_detector",
+  "class": "AnomalyDetectorAgent",
+  "schedule": "on_demand",
+  "tools": ["query_weaviate", "analyze_spending", "send_sms_alert"],
+  "events": ["balance_update", "transaction_logged"],
+  "red_lines": ["unusual_transaction_200"],
+  "max_runtime_seconds": 120,
+  "description": "Analyzes recent transactions for anomalies via Ollama, alerts on >$200 unusual"
+}

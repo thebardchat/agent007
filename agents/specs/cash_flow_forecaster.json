@@ -1,0 +1,11 @@
+{
+  "type": "cash-flow-forecaster",
+  "implementation": "agents.implementations.cash_flow_forecaster",
+  "class": "CashFlowForecasterAgent",
+  "schedule": "weekly_sunday",
+  "tools": ["get_cash_flow_forecast", "forecast_cashflow", "push_to_dashboard"],
+  "events": ["forecast_requested"],
+  "red_lines": ["negative_balance_14days"],
+  "max_runtime_seconds": 180,
+  "description": "Generates 30/60/90 day cash flow projections via Ollama"
+}

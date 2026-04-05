@@ -1,0 +1,234 @@
+# CLAUDE.md — Agent007 | HaloFinance Personal Finance Agent
+> Claude Code context file. Read this first before touching anything.
+
+---
+
+## WHO I AM
+Shane Brazelton. Dispatch manager, developer, father of five. ADHD — 
+keep responses short, direct, actionable. Zero fluff.
+
+---
+
+## WHAT THIS AGENT IS
+Agent007 is the ShaneBrain financial intelligence agent. It has full 
+read/write access to HaloFinance-Personal and all connected financial 
+data sources. It monitors, alerts, forecasts, and acts on Shane's 
+complete financial picture autonomously.
+
+This agent feeds into the Angel Cloud ecosystem:
+ShaneBrain → Angel Cloud → Pulsar AI → TheirNameBrain
+
+---
+
+## MISSION
+- Monitor all 31 bills and payment schedules
+- Track Chase bank accounts in real time
+- Watch 401K funds (RFNGX, RICAX, RGAGX) via Yahoo Finance
+- Alert on anomalies, missed payments, low balances
+- Forecast cash flow 30/60/90 days out
+- Report to Mega Dashboard and N8N
+- Never let Shane be surprised by money
+
+---
+
+## ARCHITECTURE
+
+| Node | IP | Role |
+|------|----|------|
+| Pi 5 | 100.67.120.6 | Agent host, Weaviate, Ollama |
+| Pulsar0100 | 100.81.70.117 | N8N automation bridge |
+
+**Core paths:**
+- All files: `/mnt/shanebrain-raid/shanebrain-core/agent007/`
+- HaloFinance data: `/mnt/shanebrain-raid/shanebrain-core/halofinance/`
+- Weaviate collections: `FinanceSnapshots`, `BillTracker`, 
+  `CashFlowForecasts`
+- N8N webhook base: `http://100.81.70.117:5678/webhook/`
+
+---
+
+## DATA SOURCES & ACCESS
+
+### Chase Bank
+- Pull method: Google Apps Script → N8N webhook → Weaviate
+- Accounts: Checking, Savings
+- Frequency: Every 30 minutes via N8N
+- Alert threshold: Balance drops below $500
+
+### HaloFinance-Personal
+- Location: `/mnt/shanebrain-raid/shanebrain-core/halofinance/`
+- Contains: 31 bills, due dates, amounts, autopay status
+- Format: JSON + Weaviate `BillTracker` collection
+- Agent007 has full read/write access
+
+### 401K Funds
+- Tickers: RFNGX, RICAX, RGAGX
+- Source: Yahoo Finance via corsproxy.io
+- Endpoint: `https://query2.finance.yahoo.com/v7/finance/quote`
+- Pull frequency: Daily after 4PM ET (NAV update time)
+- Store to: Weaviate `FinanceSnapshots`
+
+### Bills (31 total)
+- Managed via Google Apps Script SMS reminder system
+- Agent007 cross-references payment confirmations vs due dates
+- Escalates unpaid bills 3 days before due via N8N → SMS
+
+---
+
+## TOOLS THIS AGENT HAS
+
+### Financial Tools
+- `get_account_balances()` — Chase checking/savings current balance
+- `get_bill_status(bill_name)` — paid/unpaid/due date/amount
+- `get_all_bills()` — full 31-bill manifest with status
+- `get_401k_nav(ticker)` — current NAV for RFNGX/RICAX/RGAGX
+- `get_cash_flow_forecast(days)` — 30/60/90 day projection
+- `get_financial_snapshot()` — full picture, last generated 
+  March 25, 2026
+
+### Alert Tools
+- `send_sms_alert(message)` — via Google Apps Script
+- `send_n8n_webhook(event, payload)` — triggers N8N workflows
+- `push_to_dashboard(panel, data)` — updates Mega Dashboard 
+  HaloFinance panel at `http://100.67.120.6:8300`
+
+### Storage Tools
+- `save_to_weaviate(collection, data)` — persist financial records
+- `query_weaviate(collection, query)` — semantic search history
+- `log_transaction(type, amount, description)` — audit trail
+
+### Ollama Tools
+- `analyze_spending(data)` — local LLM spending analysis
+- `forecast_cashflow(history)` — local LLM projection
+- Model: `llama3.2:1b` at `http://100.67.120.6:11434`
+
+---
+
+## ALERT RULES (RED LINES)
+
+These fire automatically — no confirmation needed:
+
+| Trigger | Action |
+|---------|--------|
+| Balance < $500 | SMS alert immediately |
+| Bill overdue > 1 day | SMS + N8N escalation |
+| 401K drops > 5% in one day | SMS alert |
+| Unusual transaction > $200 | SMS alert |
+| Cash flow forecast negative in 14 days | Dashboard alert |
+
+---
+
+## AUTONOMY RULES
+
+Agent007 MAY do without asking:
+- Read any financial data
+- Write to Weaviate financial collections
+- Send alerts via SMS or N8N
+- Update Mega Dashboard HaloFinance panel
+- Generate and store forecasts
+
+Agent007 MUST ask before:
+- Moving or deleting any financial records
+- Changing bill amounts or due dates
+- Triggering any payment action
+- Modifying Google Apps Script
+
+---
+
+## REPORTING SCHEDULE
+
+| Report | Frequency | Destination |
+|--------|-----------|-------------|
+| Balance check | Every 30 min | Weaviate + Dashboard |
+| Bill status sweep | Daily 8AM CT | SMS if anything due |
+| 401K NAV update | Daily 4:30PM ET | Weaviate + Dashboard |
+| Cash flow forecast | Weekly Sunday | SMS summary |
+| Full snapshot | Monthly 1st | Weaviate archive |
+
+---
+
+## CODING RULES
+- Optimize for low memory — Pi shares RAM with Ollama/Weaviate/Docker
+- All files under `/mnt/shanebrain-raid/shanebrain-core/agent007/`
+- Never hardcode secrets — use `.env`
+- No bare excepts — handle every error explicitly
+- Async where possible — never block main thread
+- Short readable functions — ADHD-friendly
+- Comment the WHY not the WHAT
+
+---
+
+## DO NOT
+- NEVER expose account numbers or balances in logs
+- NEVER write outside agent007/ path without asking
+- NEVER initiate any payment or transfer
+- NEVER use MagicDNS — Tailscale IPs only
+- NEVER store secrets in code
+
+---
+
+## FILE STRUCTURE
+agent007/
+├── CLAUDE.md
+├── .env
+├── main.py
+├── tools/
+│   ├── chase.py
+│   ├── bills.py
+│   ├── funds.py
+│   ├── forecast.py
+│   └── alerts.py
+├── memory/
+│   └── MEMORY.md
+├── webhooks/
+│   └── n8n_triggers.py
+└── dashboard/
+    └── halofinance_panel.py
+
+---
+
+## WEAVIATE COLLECTIONS
+FinanceSnapshots  — dated full financial pictures
+BillTracker       — 31 bills, status, history
+CashFlowForecasts — 30/60/90 day projections
+FundNAVHistory    — daily 401K NAV records
+AlertLog          — all alerts sent with timestamps
+
+---
+
+## ENVIRONMENT VARIABLES
+CHASE_SCRIPT_URL=
+ANTHROPIC_API_KEY=
+WEAVIATE_URL=http://100.67.120.6:8080
+OLLAMA_URL=http://100.67.120.6:11434
+N8N_BASE_URL=http://100.81.70.117:5678
+GOOGLE_APPS_SCRIPT_SMS_URL=
+MEGA_DASHBOARD_URL=http://100.67.120.6:8300
+
+---
+
+## CURRENT STATUS
+- [ ] Repo initialized at thebardchat/agent007
+- [ ] HaloFinance data migration to Weaviate
+- [ ] Chase pull pipeline via N8N
+- [ ] 401K NAV daily pull
+- [ ] Bill tracker sweep and SMS alerts
+- [ ] Cash flow forecast engine
+- [ ] Mega Dashboard HaloFinance panel live connection
+- [ ] Full snapshot generator
+
+---
+
+## AGENT MEMORY
+Persistent memory lives at:
+`/mnt/shanebrain-raid/shanebrain-core/agent007/memory/`
+
+Record:
+- Bill payment pattern anomalies
+- Recurring low balance windows (paycheck timing)
+- 401K volatility patterns
+- Which alerts Shane acts on vs ignores
+
+---
+*Agent007 | HaloFinance Personal | ShaneBrain Ecosystem*
+*Shane Brazelton | thebardchat | Last updated: April 2026*
