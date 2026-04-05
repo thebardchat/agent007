@@ -168,3 +168,68 @@ Agent007 MUST ask before:
 ---
 
 ## FILE STRUCTURE
+agent007/
+├── CLAUDE.md
+├── .env
+├── main.py
+├── tools/
+│   ├── chase.py
+│   ├── bills.py
+│   ├── funds.py
+│   ├── forecast.py
+│   └── alerts.py
+├── memory/
+│   └── MEMORY.md
+├── webhooks/
+│   └── n8n_triggers.py
+└── dashboard/
+└── halofinance_panel.py
+---
+
+## WEAVIATE COLLECTIONS
+FinanceSnapshots  — dated full financial pictures
+BillTracker       — 31 bills, status, history
+CashFlowForecasts — 30/60/90 day projections
+FundNAVHistory    — daily 401K NAV records
+AlertLog          — all alerts sent with timestamps
+
+---
+
+## ENVIRONMENT VARIABLES
+CHASE_SCRIPT_URL=
+ANTHROPIC_API_KEY=
+WEAVIATE_URL=http://100.67.120.6:8080
+OLLAMA_URL=http://100.67.120.6:11434
+N8N_BASE_URL=http://100.81.70.117:5678
+GOOGLE_APPS_SCRIPT_SMS_URL=
+MEGA_DASHBOARD_URL=http://100.67.120.6:8300
+
+---
+
+## CURRENT STATUS
+- [ ] Repo initialized at thebardchat/agent007
+- [ ] HaloFinance data migration to Weaviate
+- [ ] Chase pull pipeline via N8N
+- [ ] 401K NAV daily pull
+- [ ] Bill tracker sweep and SMS alerts
+- [ ] Cash flow forecast engine
+- [ ] Mega Dashboard HaloFinance panel live connection
+- [ ] Full snapshot generator
+
+---
+
+## AGENT MEMORY
+Persistent memory lives at:
+`/mnt/shanebrain-raid/shanebrain-core/agent007/memory/`
+
+Record:
+- Bill payment pattern anomalies
+- Recurring low balance windows (paycheck timing)
+- 401K volatility patterns
+- Which alerts Shane acts on vs ignores
+
+---
+*Agent007 | HaloFinance Personal | ShaneBrain Ecosystem*
+*Shane Brazelton | thebardchat | Last updated: April 2026*
+
+
