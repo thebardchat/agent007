@@ -1,0 +1,16 @@
+agent007/
+├── CLAUDE.md
+├── .env
+├── main.py
+├── tools/
+│   ├── chase.py
+│   ├── bills.py
+│   ├── funds.py
+│   ├── forecast.py
+│   └── alerts.py
+├── memory/
+│   └── MEMORY.md
+├── webhooks/
+│   └── n8n_triggers.py
+└── dashboard/
+└── halofinance_panel.py
