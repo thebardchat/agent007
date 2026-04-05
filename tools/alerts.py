@@ -18,34 +18,65 @@ Network targets:
     - Weaviate (WEAVIATE_URL) for AlertLog persistence
 """
 
+import logging
 import os
+import uuid
+from datetime import datetime, timezone
 from typing import Any
 
 import aiohttp
 from dotenv import load_dotenv
 
+from tools import _get_session, save_to_weaviate
+
 load_dotenv()
+
+logger = logging.getLogger("agent007.alerts")
 
 GOOGLE_APPS_SCRIPT_SMS_URL = os.getenv("GOOGLE_APPS_SCRIPT_SMS_URL", "")
 N8N_BASE_URL = os.getenv("N8N_BASE_URL", "")
 MEGA_DASHBOARD_URL = os.getenv("MEGA_DASHBOARD_URL", "")
-WEAVIATE_URL = os.getenv("WEAVIATE_URL", "")
 
 
 async def send_sms_alert(message: str) -> dict[str, Any]:
     """Send an SMS alert to Shane via Google Apps Script.
 
     Args:
-        message: Alert message text. Keep concise — ADHD-friendly.
+        message: Alert message text. Truncated to 160 chars (SMS limit).
 
     Returns:
         dict with keys: sent (bool), timestamp, message_id.
-        Also logged to Weaviate AlertLog collection.
 
     Raises:
         aiohttp.ClientError: If Google Apps Script endpoint is unreachable.
     """
-    pass
+    message_id = str(uuid.uuid4())
+    timestamp = datetime.now(timezone.utc).isoformat()
+    # SMS limit
+    truncated = message[:160]
+
+    session = await _get_session()
+    try:
+        async with session.post(
+            GOOGLE_APPS_SCRIPT_SMS_URL,
+            json={"message": truncated},
+        ) as resp:
+            resp.raise_for_status()
+            logger.info("SMS sent (id=%s): %s", message_id[:8], truncated[:50])
+    except aiohttp.ClientError as exc:
+        logger.error("SMS dispatch failed: %s", exc)
+        raise
+
+    # Log to Weaviate AlertLog for audit trail
+    await save_to_weaviate("AlertLog", {
+        "alert_type": "sms",
+        "message": truncated,
+        "message_id": message_id,
+        "sent": True,
+        "timestamp": timestamp,
+    })
+
+    return {"sent": True, "timestamp": timestamp, "message_id": message_id}
 
 
 async def send_n8n_webhook(event: str, payload: dict[str, Any]) -> dict[str, Any]:
@@ -62,7 +93,25 @@ async def send_n8n_webhook(event: str, payload: dict[str, Any]) -> dict[str, Any
     Raises:
         aiohttp.ClientError: If N8N webhook endpoint is unreachable.
     """
-    pass
+    timestamp = datetime.now(timezone.utc).isoformat()
+    webhook_url = f"{N8N_BASE_URL}/webhook/agent007-{event}"
+
+    session = await _get_session()
+    try:
+        async with session.post(
+            webhook_url,
+            json={"event": event, "payload": payload, "timestamp": timestamp},
+        ) as resp:
+            resp.raise_for_status()
+            body = await resp.json()
+            workflow_id = body.get("workflowId", "unknown")
+    except aiohttp.ClientError as exc:
+        logger.error("N8N webhook failed for event '%s': %s", event, exc)
+        raise
+
+    logger.info("N8N triggered: event=%s workflow=%s", event, workflow_id)
+
+    return {"triggered": True, "workflow_id": workflow_id, "timestamp": timestamp}
 
 
 async def push_to_dashboard(panel: str, data: dict[str, Any]) -> dict[str, Any]:
@@ -79,4 +128,20 @@ async def push_to_dashboard(panel: str, data: dict[str, Any]) -> dict[str, Any]:
     Raises:
         aiohttp.ClientError: If Mega Dashboard is unreachable.
     """
-    pass
+    timestamp = datetime.now(timezone.utc).isoformat()
+    panel_url = f"{MEGA_DASHBOARD_URL}/api/panels/halofinance/{panel}"
+
+    session = await _get_session()
+    try:
+        async with session.post(
+            panel_url,
+            json={"panel": panel, "data": data, "updated_at": timestamp},
+        ) as resp:
+            resp.raise_for_status()
+    except aiohttp.ClientError as exc:
+        logger.error("Dashboard push failed for panel '%s': %s", panel, exc)
+        raise
+
+    logger.info("Dashboard updated: panel=%s", panel)
+
+    return {"updated": True, "panel": panel, "timestamp": timestamp}

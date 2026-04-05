@@ -1,0 +1,11 @@
+{
+  "type": "balance-monitor",
+  "implementation": "agents.implementations.balance_monitor",
+  "class": "BalanceMonitorAgent",
+  "schedule": "every_30min",
+  "tools": ["get_account_balances", "send_sms_alert", "push_to_dashboard"],
+  "events": ["balance_update"],
+  "red_lines": ["balance_below_500"],
+  "max_runtime_seconds": 30,
+  "description": "Checks Chase checking/savings balances, alerts if below $500"
+}
